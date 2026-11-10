@@ -1,0 +1,114 @@
+@startuml
+title Diagrama de Classes - Simulador de Dron (OpenGL)
+
+'=====================
+' CLASSES PRINCIPALS
+'=====================
+
+class Application {
+'Atributs'
+Window window
+Scene scene
+bool isRunning
+'Metodes'
+void run()
+void init()
+void update(float deltaTime)
+void render()
+void shutdown()
+}
+
+class Window {
+'Atributs'
+'Metodes'    
+}
+
+class Scene {
+'Atributs'
+Camera camera
+vector<Model3D> models
+vector<Light> lights
+'Metodes'
+}
+
+class Camera {
+'Atributs'
+'Metodes'    
+}
+
+class CameraDron {
+'Atributs'
+Dron* target
+'Metodes'
+void updateFollow()
+float getInclinationX()
+float getInclinationY() 
+float getInclinationZ()
+vec2 getMapPosition() 
+float getAltitude()
+float getFlightTime()
+}
+
+class Model3D {
+'Atributs'
+Shader shader
+Texture texture
+mat4 modelMatrix
+'Metodes' 
+void render()
+void setPosition(vec3 pos)
+void setRotation(vec3 rot)
+void setScale(vec3 scale)
+}
+
+class Dron {
+'Atributs'
+vec3 velocity
+vec3 acceleration
+float pitch 
+float roll
+float yaw
+float flightTime
+vec2 mapPosition
+float altitude
+float batteryLevel
+'Metodes'
+void update(float deltaTime)
+void applyInput(Input input)
+void setInclination(float x, float y, float z)
+void updatePosition(vec3 newPosition)
+void checkCollision(Scene scene)
+void resetFlight()
+}
+
+class Shader {
+'Atributs'
+'Metodes'    
+}
+
+class Texture {
+'Atributs'
+'Metodes'    
+}
+
+class Light {
+'Atributs'
+'Metodes'    
+}
+
+'=====================
+' RELACIONS
+'=====================
+
+Application --> Window : "conté"
+Application --> Scene : "gestiona"
+Scene --> Camera : "utilitza"
+Scene --> Model3D : "té"
+Scene --> Light : "té"
+Model3D --> Shader : "usa"
+Model3D --> Texture : "conté"
+Light --> Shader : "afegeix paràmetres"
+Model3D <|-- Dron : "herencia"
+Camera <|-- CameraDron : "herencia"
+Dron --> CameraDron : "conté"
+@enduml

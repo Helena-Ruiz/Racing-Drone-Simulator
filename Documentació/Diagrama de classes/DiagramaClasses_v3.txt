@@ -1,0 +1,79 @@
+@startuml
+
+' ---------- Controls ----------
+package "Controls" {
+    class Controller
+    class KeyboardController
+    class GamepadController
+}
+
+' ---------- Drone ----------
+package "Drone" {
+    class Dron
+    class quatern
+    class ReplaySystem
+}
+
+' ---------- Graphics ----------
+package "Graphics" {
+    class Camera
+    class Model3D
+    class Mesh
+    class Material
+    class Shader
+    class Texture
+    class Light
+    class Skybox
+    class World
+}
+
+' ---------- UI ----------
+package "UI" {
+    class HUD
+    class Menu
+    class ImGuiManager
+}
+
+' ---------- Main Application ----------
+class Application
+
+' ---------- Relacions ----------
+
+Application --> Scene : "conté"
+Application --> Controller : "usa"
+Application --> Menu : "conté"
+Application --> ImGuiManager : "gestiona"
+
+Scene --> Camera : "gestiona"
+Scene --> Dron : "conté"
+Scene --> World : "conté"
+Scene --> HUD : "conté"
+
+Dron --> Model3D : "té"
+Dron --> Camera
+Dron --> quatern : "usa per rotació"
+Dron --> ReplaySystem : "usa per enregistrament"
+
+World --> Model3D : "conté"
+World --> Light : "conté"
+World --> Skybox : "conté"
+
+Model3D --> Mesh : "conté"
+Model3D --> Material : "té"
+Model3D --> Shader : "usa per dibuixar"
+
+Material --> Texture : "pot tenir"
+
+HUD --> Shader : "usa"
+HUD --> ImGuiManager : "usa per dibuixar"
+
+Menu --> ImGuiManager : "usa"
+KeyboardController ..|> Controller
+GamepadController ..|> Controller
+
+Camera --> quatern : "usa per rotació"
+Skybox --> Shader : "usa"
+Skybox --> Texture : "usa"
+ReplaySystem --> HUD : "pot mostrar informació"
+
+@enduml

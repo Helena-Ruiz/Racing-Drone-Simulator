@@ -1,0 +1,78 @@
+# --- Carpetes de Visual Studio ---
+.vs/
+*.user
+*.VC.db
+*.VC.VC.opendb
+
+# --- Fitxers de configuració d'usuari ---
+*.suo
+*.userosscache
+*.sln.docstates
+
+# --- Fitxers temporals i de compilació ---
+*.obj
+*.pdb
+*.idb
+*.pch
+*.ilk
+*.log
+*.tlog
+*.tmp
+*.cache
+*.lastbuildstate
+*.ipch/
+*.db
+
+# --- Carpetes de sortida de compilació ---
+/x64/
+/ProjecteDron/x64/
+/ProjecteDron/Debug/
+/ProjecteDron/Release/
+/Debug/
+/Release/
+/bin/
+/build/
+/out/
+
+# --- Fitxers generats per CMake o MSBuild ---
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+
+# --- Fitxers de depuració ---
+*.exe
+*.dll
+*.exp
+*.ilk
+*.pdb
+
+# --- Fitxers de sistema operatiu ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+ehthumbs.db
+*.swp
+*.swo
+
+# --- Logs i configuracions temporals ---
+*.log
+*.vspscc
+*.vssscc
+
+# --- Fitxers de backup o autoguardats ---
+*~
+*.bak
+*.old
+
+# --- Altres entorns o extensions ---
+.idea/
+.vscode/
+*.code-workspace
+*.recipe
+
+# No ignorar la carpeta ProjecteDron/objectes
+!/ProjecteDron/Models/
+!/ProjecteDron/Models/**
+ProjecteDron/configuracioMenu.json
+ProjecteDron/imgui.ini

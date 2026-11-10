@@ -1,0 +1,214 @@
+@startuml
+left to right direction
+
+class Application {
+    -GLFWwindow* window
+    -Scene scene
+    -Controller* controller
+    -float m_screen_width, m_screen_height
+    +Application()
+    +~Application()
+    +void initOpenGL()
+    +void run()
+    +void processInput()
+}
+
+class Scene {
+    -Camera cameraFree;
+    -Camera cameraThirdPerson;
+    -Camera cameraFPV;
+    -Camera* activeCamera;
+    -Dron dron
+    -World world
+    -HUD hud
+    +void update(float deltaTime, Controller& controller)
+    +void draw(Shader& shader)
+    +Camera& getActiveCamera()
+    +Dron& getDron()
+}
+
+class Camera {
+    -glm::vec3 position
+    -glm::vec3 orientation
+    -glm::vec3 up
+    -float fov
+    -float aspectRatio
+    -float nearPlane
+    -float farPlane
+    -bool isPerspective
+    -glm::mat4 view
+    -glm::mat4 projection
+    -Type type
+    +Camera(float aspectRatio, Type type)
+    +void updateView()
+    +void updateProjection()
+    +void updateFollow(const glm::vec3& targetPos, const glm::vec3& forward)
+    +void sendToShader(Shader& shader, const char* uniform)
+    +void setPosition(glm::vec3 pos)
+    +void setOrientation(glm::vec3 dir)
+    +void setProjectionMode(bool perspective)
+    +void setType(Type type)
+    +void setAspectRatio(float ratio)
+    +glm::mat4 getViewMatrix() const
+    +glm::mat4 getProjectionMatrix() const
+    +glm::vec3 getPosition() const
+    +glm::vec3 getOrientation()
+    +Type getType()
+}
+
+class World {
+    -vector<Model3D> staticObjects
+    -vector<Light> lights
+    +void addObject(Model3D obj)
+    +void addLight(Light light)
+    +void draw(Shader& shader, Camera& camera)
+}
+
+class Dron {
+    -glm::vec3 position
+    -glm::vec3 velocity
+    -glm::vec3 acceleration
+    -float pitch, roll, yaw
+    -float flightTime
+    -float altitude
+    -float batteryLevel
+    -Model3D model
+    -MODE_VOL modeVol
+    +Dron()
+    +void draw(Shader& shader, Camera& camera)
+    +void update(float deltaTime, Controller& controller)
+    +glm::vec3 getPosition()
+    +glm::vec3 getForward()
+    +float getAltitude()
+    +float getBatteryLevel()
+    +MODE_VOL getMode()
+    +void setMode(MODE_VOL mode)
+}
+
+class Model3D {
+    -GLuint VAO, VBO, EBO   
+    -vector<float> vertices
+    -vector<unsigned int> indices
+    -Material material
+    +Model3D()
+    +bool loadFromFile(string path)
+    +void draw(Shader& shader)
+    +Material& getMaterial()
+}
+
+class Material {
+    -glm::vec3 ambient
+    -glm::vec3 diffuse
+    -glm::vec3 specular
+    -float shininess
+    -Texture* diffuseMap
+    -Texture* normalMap
+    +Material()
+    +void setDiffuseMap(Texture* texture)
+    +void setNormalMap(Texture* texture)
+    +void setProperties(glm::vec3 amb, glm::vec3 diff, glm::vec3 spec, float shin)
+    +void apply(Shader& shader) const
+}
+
+class Shader {
+    -GLuint programID
+    +Shader()
+    +Shader(const std::string& vertexPath, const std::string& fragmentPath)
+    +~Shader()
+    +void use()
+    +void setBool(const std::string& name, bool value)
+    +void setInt(const std::string& name, int value)
+    +void setFloat(const std::string& name, float value)
+    +void setVec3(const std::string& name, const glm::vec3& value)
+    +void setMat4(const std::string& name, const glm::mat4& mat)
+    +GLuint getID() const
+    +std::string readFile(const std::string& filePath) const
+    +void checkCompileErrors(GLuint shader, const std::string& type) const
+}
+
+class HUD {
+    -Dron* dron
+    -Shader shader
+    -GLuint VAO, VBO
+    -Texture* fontTexture
+    +HUD()
+    +void update(Dron* dron)
+    +void draw(const Camera& camera)
+}
+
+class Controller {
+    <<interface>>
+    +virtual ~Controller()
+    +virtual void update() = 0
+    +virtual float getAxis(string axisName) const = 0
+    +virtual bool getButton(string buttonName) const = 0
+}
+
+class KeyboardController {
+    -float m_axisValues[4]
+    -bool m_buttonStates[2]
+    +KeyboardController()
+    +void update() override
+    +float getAxis(string axisName) const override
+    +bool getButton(string buttonName) const override
+}
+
+class GamepadController {
+    -int m_gamepadID
+    -float m_axisValues[4]
+    -bool m_buttonStates[2]
+    +GamepadController(int gamepadID)
+    +void update() override
+    +float getAxis(string axisName) const override
+    +bool getButton(string buttonName) const override
+}
+
+class Light {
+    - glm::vec3 m_position
+    - glm::vec3 m_color
+    - glm::vec3 m_direction
+    - float m_intensity
+    - LIGHT_TYPE m_type
+    + Light()
+    + void applyToShader(const Shader& shader, int index = 0) const
+    + LIGHT_TYPE getType() const
+    + glm::vec3 getPosition() const
+    + glm::vec3 getColor() const
+    + float getIntensity() const
+}
+
+class Texture {
+    -GLuint ID
+    -int width, height, nrChannels
+    -string path
+    +Texture(string filePath)
+    +void bind(unsigned int unit = 0) const
+    +void unbind() const
+    +GLuint getID() const
+}
+
+' ---------- Relacions ----------
+Application --> Scene : "conté"
+Application --> Controller : "usa"
+
+Scene --> Camera : "gestiona"
+Scene --> Dron : "conté"
+Scene --> World : "conté"
+Scene --> HUD : "conté"
+
+Dron --> Model3D : "té"
+Dron --> Camera
+
+World --> Model3D : "conté"
+World --> Light : "conté"
+
+Model3D --> Material : "té"
+Model3D --> Shader : "usa per dibuixar"
+
+Material --> Texture : "pot tenir"
+
+HUD --> Shader : "usa"
+
+KeyboardController ..|> Controller
+GamepadController ..|> Controller
+@enduml

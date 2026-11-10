@@ -1,0 +1,187 @@
+===CREAR PESTAÑAS/BOTONES EN EL MENU DEL ENTORNO=====
+Abrir la pestaña de recursos desde VisualStudio:
+-Ver>Otras ventanas>Vista de recursos
+
+Seleccionar el menu del entorno:
+-EntornVGI>EntornVGI.rc>Menu>IDR_EntornVGITYPE <-- Doble click
+
+Se abrirá una pestaña con todos los botones y pestañas del menu del entorno.
+Al final aparecerá un recuadro que pone: "Escriba aqui". Lo seleccionas y 
+escribes el texto del boton. 
+
+Despues, haces doble click en el boton y se abrira la pestaña de "Propiedades".
+Ahi, en el apartado Varios>Id., escribes el identficador que quieras ponerle al
+boton.
+
+Cuando ya tienes el identificador, hay que crear una función que se llame al 
+pulsar el boton:
+-Proyecto>Asistente para clases
+
+Se abrira una pestaña.
+Ahí, en "Nombre de clase:" seleccionas la clase "CEntornVGIView".
+
+Un poco más abajo, en el recuadro "Identificadores de objeto" apareceran
+los diferentes Identificadores de los botones del menu.
+Encima puedes buscar el que has añadido nuevo.
+
+Una vez encontrado, le haces doble click y escribes el nombre que quieras
+que tenga la función (no importa mucho realmente, asi que suelo dejarlo como
+sale).
+
+Al aceptar se abrira automaticamente en una pestaña en el VisualStudio 
+el fichero EntornVGIView.cpp y, al fondo del todo, estará la función creada.
+
+Esta cada vez que se pulse el boton en el menu se ejecutará.
+
+
+
+
+
+Para lo que se suele usar esta función es, en orden:
+-Cambiar el tipo de objeto que se va a mostrar por pantalla:
+--objecte = <VALOR CONSTANTE DEFINIDO>
+
+-Vaciará el VAOList, Precargará las diferentes partes/texturas y colores que se usaran para dibujarlo y llamara a la función de dibujar.
+
+[PISTA: cuando se cree la función, id a una que esté ya creada, como la del
+peon o el cubo, copiais todo, y seguis desde ahi]
+
+De todo lo que está en la función OnPeon (como ejemplo):
+-object = PAWN --> indica que objeto se va a ver
+-central position = valor --> reeinicia la posicion central del escenario
+	(esto lo he añadido yo para poder mover las piezas con las flechas)
+
+-wglMakeCurrent(m_pDC->GetSafeHdc(), m_hRC);	<-- Nose que hace, copiar siempre
+-netejaVAOList();	<-- Limpia la VAOList (copiar siempre)
+
+-SetColor4d(col_obj.r, col_obj.g, col_obj.b, col_obj.a); <-- Pone color del obj a blanco (creo)
+
+
+-SetVAOList(...) <--- añadidos por mi para cargar las partes (copiar, pero luego modificar segun
+			la forma que vayais a hacer)
+
+-wglMakeCurrent(m_pDC->GetSafeHdc(), NULL); <-- Activa la escena (copiar siempre)
+-InvalidateRect(NULL, false); <-- llama a la funcion de dibujar (copiar siempre)
+
+
+
+
+===============DONDE DEFINIR LOS VALORES CONSTANTES QUE DEFINEN LOS OBJETOS A LA HORA DE DIBUJAR==============
+
+En el fichero constants.h, casi arriba del todo, estan los numeros definidos para las piezas y el tablero (las que fui poniendo).
+
+Poneis:		#define OBJETO 'caracter'
+
+siendo "caracter" una letra que NO se este usando como objeto (probad una y si os da error la vais cambiando)
+
+
+
+==============DONDE USO ESTE VALOR CONSTANTE DE OBJETO??=========================
+En el fichero escena.cpp, dentro de la función dibuixa_EscenaGL(...) hay un switch(objecte).
+Añadis un caso para el objeto que vais a dibujar con el valor constante que habeis definido:
+-case OBJETO:
+	codigo;
+	codigo;
+	break;
+
+
+En cada "case" yo suelo llamar a una función que dibujará la pieza que le corresponda.
+Estas funcions podeis simplemente copiar alguna que esté hecha (como Pawn(...)).
+
+IMPORTANTE: Cuando hagais una función nueva tiene que hacerse al final de escena.cpp y definirla 
+en el fichero escena.h (abajo del todo estan las que hice yo para las piezas)
+
+
+Si seguis con el patron de funcion de las piezas hechas tendreis que mandarle un vector (vector)
+de posiciones (vec3) que ya está creado justo encima del switch case. Solo teneis que meterle 
+(push_back) una posicion inicializada a (0.0f, 0.0f, 0.0f) para que se dibuje a partir de ahi.
+Si le poneis 2 posiciones difeerentes al vector (haceis 2 pushs con diferentes coords), 
+cuando se dibuje la función se dibujara 2 veces lo mismo.
+
+
+===================DISEÑO DE LAS FUNCIONES ESTILO "Pawn"==================
+Las funciones que llamamos desde el switch case de la función dibuixa_EscenaGL(...)
+estan formadas basicamente por bloques de "for" (al inicio hay una declaracion de una matriz,
+es importante dejarla tal cual).
+
+Cada for se dedica a DIBUJAR UNA PARTE del objeto. Para cada parte hace:
+(luego os digo a que parte del objeto se aplica, y como definimos esa parte)
+-Define el movimiento de translacion que haremos: 
+		ModelMatrix = glm::translate(Mat, pos[i] + vec3(x,y,z))
+	-la pos[i] es la posicion desde la cual se movera el objeto
+	-el vec3(x,y,z) define las unidades quee se movera en cada eje (cambiando x, y, z)
+
+-Define la rotación (muchas veces ni lo he usado. Si no lo necesitais ni se pone):
+	ModelMatrix = glm::rotate(ModelMatrix, radians(grados en float), vec3(x,y,z))
+	-en radians() indicais los grados (en 360º) que quereis rotar.
+	-en vec3() indicais que eje quereis rotar (1=rotar en ese eje, 0=no rotar en ese eje)
+
+-Define la escala:
+	ModelMatrix = glm::scale(ModelMatrix, vec3(x, y, z));
+	-en vec3() se indica por cuanto quereis multiplicar cada longitud del objeto
+
+---ESTAS 3 LINEAS SIEMPRE VAN DESPUES DE LAS TRANSFORMACIONES ANTERIORES
+-glUniformMatrix4fv(glGetUniformLocation(sh_programID, "modelMatrix"), 1, GL_FALSE, &ModelMatrix[0][0]);
+-NormalMatrix = transpose(inverse(MatriuVista * ModelMatrix));
+-glUniformMatrix4fv(glGetUniformLocation(sh_programID, "normalMatrix"), 1, GL_FALSE, &NormalMatrix[0][0]);
+
+
+-Dibujamos el objeto que hemos cargado previamente en la posicion OBJ del VAOList:
+	draw_TriVAO_Object(OBJ); // draw_TriEBO_Object(OBJ);
+	-CUIDADO: hay objetos que al cargarlos se cargan en EBO y otras en VAO, depende
+		de la función usada (luego os digo)
+
+
+
+===================QUE OBJETOS HE CARGADO EN QUE POSICION DEL VAO, Y COMO LO HAGO?========
+Como ya he dicho las partes hay que precargarlas en la función explicada al principio 
+(la que se llama al pulsar el boton).
+
+Para cargarla hay que utilizar:
+	Set_VAOList(POSICION_VAOLIST, PARTE);
+
+En el primer parametro indicamos en que posicion del VAOList va a guardarse la parte.
+
+
+La parte/forma como tal se pasa como segundo parametro (imagina que la parte que quieres 
+cargar es un cilindro: pues pasariamos el "cilindro")
+
+Esta parte como la definimos? Usando las diferentes funciones que comienzan por:
+	 loadglu<FORMA>_EBO() o loadglu_<FORMA>_VAO()
+
+Por ejemplo, para cargar un cilindro HUECO utilizariamos:  
+		loadgluCylinder_EBO(parametros)
+
+Esta función se colocaria dentro de segundo parametro  de la función Set_VAOList(). 
+IMPORTANTE: a la hora de dibujarla mediante draw_TriVAO_Object() o draw_TriEBO_Object() hay
+que tener en cuenta lo que pone en la función que usamos para cargar la forma (en el ejemplo
+de arriba, cargamos un cilindro en EBO, por lo que --> draw_TriEBO_Object(...) )
+
+Podemos modificar las medidas del cilindro pasandoselas por parametro (hay que pasarle
+parametros siempre). Si escribes la funcion completa sin parametros, y la seleccionas,
+visual te muestra los parametros que puede recibir.
+
+Para el cilindro, por ejemplo, se le pasa:
+	1. radio del circulo inferior
+	2. radio del circulo superior
+	3. altura
+	4. numero de lados que formaran los circulos
+	5. cuantos cilindros, uno sobre otro, queremos cargar (apilados)
+
+
+
+Como sabemos en que posicion de VAOList ponemos las formas?
+-Lo suyo es poner cada forma diferente en una posicion diferente. Para no utilizar
+una misma posicion para diversos objetos y queno hayan fallos podemos usar otra vez
+valores constantes, como con los objetos.
+
+Los definimos los valores constantes de PARTES de piezas en el fichero glut_geometry.h
+(a partir de la linea 135 estan las constantes de las partes de las piezas que he ido haciendo)
+
+Podeis definir mas. PERO cuidado: 
+	-hay que mirar que no sobrepasemos el limite de tamaño del VAOList (se define
+		en la linea 84 --> MAX_SIZE_VAOID 60. Si veis que accedeis a posiciones
+		fuera del VAOList, podeis hacerlo más grande y ya)
+	-Si cargais dos piezas diferentes en la misma posicion la primera desaparece.
+
+

@@ -1,0 +1,3 @@
+The  shader uses varying VertexTexCoord, but previous shader does not write to it.
+The  shader uses varying VertexColor, but previous shader does not write to it.
+Out of resource error.
